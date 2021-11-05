@@ -1,0 +1,42 @@
+name: Tests
+
+on: [ pull_request, push ]
+
+jobs:
+  ubuntu:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['7.4', '8.0', '8.1']
+
+    name: PHP ${{ matrix.php }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: xdebug
+
+      - name: Install dependencies
+        run: composer update --prefer-dist --no-progress
+
+      - name: Run test suite
+        run: vendor/bin/pest --coverage --coverage-clover=coverage.xml
+
+      - name: Code Climate Test Reporter
+        if: matrix.coverage
+        uses: aktions/codeclimate-test-reporter@v1
+        with:
+          codeclimate-test-reporter-id: ${{ secrets.CC_TEST_REPORTER_ID }}
+          command: after-build -t clover
+        env:
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+        continue-on-error: true
+
+      - name: Coverage
+        uses: codecov/codecov-action@v1

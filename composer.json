@@ -1,0 +1,27 @@
+{
+    "name": "morph/morph",
+    "description": "Generic tooling to transform",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "kylekatarnls",
+            "homepage": "https://github.com/kylekatarnls"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "php": "^7.4 || ^8.0"
+    },
+    "require-dev": {
+        "pestphp/pest": "^1.20"
+    },
+    "autoload": {
+        "psr-4": {
+            "Morph\\": "src/Morph/"
+        }
+    },
+    "scripts": {
+        "test": "pest"
+    }
+}
