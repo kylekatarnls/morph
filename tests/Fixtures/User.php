@@ -15,6 +15,7 @@ final class User
      * Includes middle name(s).
      *
      * @exposed
+     * @deprecated
      */
     public string $firstName;
 
@@ -49,6 +50,8 @@ final class User
 
     /**
      * Complete first and last name.
+     *
+     * @exposed
      */
     public function getName(): string
     {
