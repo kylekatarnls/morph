@@ -6,6 +6,7 @@ namespace Morph\Tests\Fixtures;
 
 use Morph\FilterValues;
 use Morph\Getters;
+use Morph\LowerKeysFirstLetter;
 use Morph\Merge;
 use Morph\PublicProperties;
 use Morph\Reflection\Documented;
@@ -21,6 +22,7 @@ final class UserDefiner extends Sequence
                 new PublicProperties(),
                 new Getters(['get', 'is']),
             ]),
+            new LowerKeysFirstLetter(),
             new FilterValues(static fn (Documented $property) => $property->hasAttributeOrIsAnnotatedWith(
                 Exposed::class,
             )),

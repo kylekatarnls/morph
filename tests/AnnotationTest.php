@@ -20,6 +20,10 @@ test('Annotation', function () {
                 'type' => 'string',
                 'description' => "First name(s) / Surname(s).\n\nIncludes middle name(s).",
             ],
+            'name' => [
+                'type' => 'string',
+                'description' => 'Complete first and last name.',
+            ],
         ],
     ));
 });
