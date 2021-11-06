@@ -15,7 +15,7 @@ use Morph\TransformValues;
 
 final class UserDefiner extends Sequence
 {
-    protected function getTransformer(): array
+    protected function getTransformers(): array
     {
         return [
             new Merge([

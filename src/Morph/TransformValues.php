@@ -15,6 +15,6 @@ class TransformValues extends MorphBase
 
     public function __invoke(array $value): array
     {
-        return array_map($this->transformer, $value);
+        return $this->mapWithTransformer($this->transformer, $value);
     }
 }

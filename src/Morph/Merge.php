@@ -7,6 +7,7 @@ namespace Morph;
 class Merge extends MorphBase
 {
     protected array $transformers;
+    protected array $transformersCache;
 
     public function __construct(array $transformers = [])
     {
@@ -15,13 +16,15 @@ class Merge extends MorphBase
 
     public function __invoke($value, ...$args): array
     {
+        $this->transformersCache ??= $this->getTransformers();
+
         return array_merge(...array_map(
-            static fn ($transformer) => $transformer($value, ...$args),
-            $this->getTransformer(),
+            fn ($transformer) => $this->useTransformerWith($transformer, $value, ...$args),
+            $this->transformersCache,
         ));
     }
 
-    protected function getTransformer(): array
+    protected function getTransformers(): array
     {
         return $this->transformers;
     }

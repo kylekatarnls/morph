@@ -16,7 +16,7 @@ class TransformKeys extends MorphBase
     public function __invoke(array $value): array
     {
         return array_combine(
-            array_map($this->transformer, array_keys($value)),
+            $this->mapWithTransformer($this->transformer, array_keys($value)),
             $value,
         );
     }
