@@ -22,7 +22,7 @@ abstract class MorphBase implements Morph
             return $transformer(...$args);
         }
 
-        if (method_exists($transformer, 'transform')) {
+        if (is_object($transformer) && method_exists($transformer, 'transform')) {
             return $transformer->transform(...$args);
         }
 
