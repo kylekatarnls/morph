@@ -1,6 +1,6 @@
 {
     "name": "kylekatarnls/morph",
-    "description": "Generic tooling to transform",
+    "description": "Generic tooling to compose transformations",
     "type": "library",
     "license": "MIT",
     "authors": [
@@ -14,6 +14,7 @@
         "php": "^7.4 || ^8.0"
     },
     "require-dev": {
+        "ext-json": "*",
         "pestphp/pest": "^1.20"
     },
     "autoload": {
