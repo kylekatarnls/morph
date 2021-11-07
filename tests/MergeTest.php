@@ -9,6 +9,16 @@ use Morph\Tests\Fixtures\User;
 use Morph\UpperKeysFirstLetter;
 
 test('Merge', function () {
+    $merge = new Merge([
+        static fn ($value) => ['items' => $value],
+        static fn ($value) => ['total' => count($value)],
+    ]);
+
+    expect($merge(['A', 'B']))->toBe([
+        'items' => ['A', 'B'],
+        'total' => 2,
+    ]);
+
     $userTransformer = new Merge([
         new PublicPropertiesToArray(),
         new Sequence([new GettersToArray(['get', 'is']), new LowerKeysFirstLetter(['ID' => 'id'])]),

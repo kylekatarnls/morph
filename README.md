@@ -243,6 +243,493 @@ an auto-documented API system such as
 
 See more in the [Reflection chapter](#Reflection).
 
+## Built-in transformers
+
+### FilterKeys
+
+Filter an array to keep only keys for which the given callable
+returns `true` (or is truthy if no callable was passed in the constructor).
+
+```php
+$removePrivateKeys = new \Morph\FilterKeys(
+    static fn (string $key) => $key[0] !== '_',
+);
+$removePrivateKeys([
+    'foo' => 'A',
+    '_bar' => 'B',
+    'biz' => 'C',
+]);
+```
+
+```php
+[
+    'foo' => 'A',
+    'biz' => 'C',
+]
+```
+
+### FilterValues
+
+Filter an array to keep only values for which the given callable
+returns `true` (or is truthy if no callable was passed in the constructor).
+
+```php
+$removeLowValues = new \Morph\FilterValues(
+    static fn ($value) => $value > 10,
+);
+$removeLowValues([
+    'foo' => 12,
+    '_bar' => 14,
+    'biz' => 7,
+]);
+```
+
+```php
+[
+    'foo' => 12,
+    '_bar' => 14,
+]
+```
+
+### Getters
+
+Return the list of the methods (as an array of `\Morph\Reflection\Method`)
+that start with `"get"` or one of the given prefixes if you passed a list
+or prefixes in the constructor.
+
+```php
+class User
+{
+    public function getName(): string { return 'Bob'; }
+    public function isAdmin(): bool { return false; }
+    public function update(): void {}
+}
+
+$getGetters = new \Morph\Getters(['get', 'is']);
+$getGetters(User::class);
+```
+```php
+[
+    'Name' => new \Morph\Reflection\Method(new \ReflectionMethod(
+        User::class, 'getName',
+    )),
+    'Admin' => new \Morph\Reflection\Method(new \ReflectionMethod(
+        User::class, 'isAdmin',
+    )),
+]
+```
+
+Note that `Getters` does not call the methods, it just return
+the definitions of those methods.
+
+See more in the [Reflection chapter](#Reflection).
+
+### GettersToArray
+
+Return values for each public method of an object
+that start with `"get"` or one of the given prefixes if you passed a list
+or prefixes in the constructor.
+
+```php
+class User
+{
+    public string $id = 'abc';
+    public function getName(): string { return 'Bob'; }
+    public function isAdmin(): bool { return false; }
+    public function update(): void {}
+}
+
+$bob = new User();
+
+$getGetters = new \Morph\GettersToArray(['get', 'is']);
+$getGetters($bob);
+```
+```php
+[
+    'Name' => 'Bob',
+    'Admin' => false,
+]
+```
+
+### LowerFirstLetter
+
+Lowercase the first letter of the input if it's a string.
+If a mapping array is given in the constructor, this will
+be used prior to the lowercase action.
+
+```php
+$lowerFirstLetter = new \Morph\LowerFirstLetter([
+    'Special' => '***special***',
+]);
+
+$lowerFirstLetter(5); // 5, non-string input are returned as is
+$lowerFirstLetter('FooBar'); // "fooBar"
+$lowerFirstLetter('Special'); // "***special***"
+```
+
+### UpperFirstLetter
+
+Uppercase the first letter of the input if it's a string.
+If a mapping array is given in the constructor, this will
+be used prior to the uppercase action.
+
+```php
+$upperFirstLetter = new \Morph\UpperFirstLetter([
+    '***special***' => 'Special',
+]);
+
+$upperFirstLetter(5); // 5, non-string input are returned as is
+$upperFirstLetter('fooBar'); // "FooBar"
+$upperFirstLetter('***special***'); // "Special"
+```
+
+### LowerKeysFirstLetter
+
+Lowercase the first letter of each key of a given array.
+If a mapping array is given in the constructor, this will
+be used prior to the lowercase action.
+
+```php
+$lowerFirstLetter = new \Morph\LowerKeysFirstLetter([
+    'Special' => '***special***',
+]);
+
+$lowerFirstLetter([
+    5 => 'abc',
+    'FooBar' => 'def',
+    'Special' => 'ghi',
+]);
+```
+```php
+[
+    5 => 'abc',
+    'fooBar' => 'def',
+    '***special***' => 'ghi',
+]
+```
+
+### UpperKeysFirstLetter
+
+Uppercase the first letter of each key of a given array.
+If a mapping array is given in the constructor, this will
+be used prior to the uppercase action.
+
+```php
+$upperFirstLetter = new \Morph\UpperKeysFirstLetter([
+    '***special***' => 'Special',
+]);
+
+$upperFirstLetter([
+    5 => 'abc',
+    'fooBar' => 'def',
+    '***special***' => 'ghi',
+]);
+```
+```php
+[
+    5 => 'abc',
+    'FooBar' => 'def',
+    'Special' => 'ghi',
+]
+```
+
+### Merge
+
+Merge (using `array_merge`) the results of a list of transformers.
+
+```php
+$itemsWithTotal = new \Morph\Merge([
+    static fn ($value) => ['items' => $value],
+    static fn ($value) => ['total' => count($value)],
+]);
+
+$itemsWithTotal(['A', 'B']);
+```
+```php
+[
+    'items' => ['A', 'B'],
+    'total' => 2,
+]
+```
+
+It will be mostly useful to combine other `Morph` classes:
+```php
+class User
+{
+    public string $id = 'abc';
+    public function getName(): string { return 'Bob'; }
+    public function isAdmin(): bool { return false; }
+    public function update(): void {}
+}
+
+$bob = new User();
+
+$itemsWithTotal = new \Morph\Merge([
+    new \Morph\PublicPropertiesToArray(),
+    new \Morph\GettersToArray(['get', 'is']),
+]);
+
+$itemsWithTotal(['A', 'B']);
+```
+```php
+[
+    'id' => 'abc',
+    'Name' => 'Bob',
+    'Admin' => false,
+]
+```
+
+### Only
+
+Keep from an array only the given keys.
+```php
+$info = [
+    'firstName' => 'Georgia',
+    'lastName' => 'Dobbins',
+    'group' => 'The Marvelettes',
+];
+
+$select = new \Morph\Only(['firstName', 'lastName']);
+
+$select($info);
+```
+```php
+[
+    'firstName' => 'Georgia',
+    'lastName' => 'Dobbins',
+]
+```
+
+It can be an array or a single key:
+```php
+$info = [
+    'firstName' => 'Georgia',
+    'lastName' => 'Dobbins',
+    'group' => 'The Marvelettes',
+];
+
+$select = new \Morph\Only('firstName');
+
+$select($info);
+```
+```php
+[
+    'firstName' => 'Georgia',
+]
+```
+
+### Pick
+
+Return the value at a given key or null if the key does not exist.
+```php
+$info = [
+    'firstName' => 'Georgia',
+    'lastName' => 'Dobbins',
+    'group' => 'The Marvelettes',
+];
+
+$select = new \Morph\Pick('firstName');
+
+$select($info);
+```
+```php
+'Georgia'
+```
+
+### Properties
+
+Return the list of the properties defined in a class
+(as an array of `\Morph\Reflection\Property`)
+
+```php
+class User
+{
+    public string $name;
+    protected int $id;
+    private array $cache;
+}
+
+$getProperties = new \Morph\Properties();
+
+$getProperties(User::class);
+```
+```php
+[
+    'name' => new \Morph\Reflection\Property(new \ReflectionProperty(
+        User::class, 'name',
+    )),
+    'id' => new \Morph\Reflection\Property(new \ReflectionProperty(
+        User::class, 'id',
+    )),
+    'cache' => new \Morph\Reflection\Property(new \ReflectionProperty(
+        User::class, 'cache',
+    )),
+]
+```
+
+See more in the [Reflection chapter](#Reflection).
+
+### PublicProperties
+
+Return the list of the public properties defined in a class
+(as an array of `\Morph\Reflection\Property`)
+
+```php
+class User
+{
+    public string $name;
+    protected int $id;
+    private array $cache;
+}
+
+$getPublicProperties = new \Morph\PublicProperties();
+
+$getPublicProperties(User::class);
+```
+```php
+[
+    'name' => new \Morph\Reflection\Property(new \ReflectionProperty(
+        User::class, 'name',
+    )),
+]
+```
+
+See more in the [Reflection chapter](#Reflection).
+
+### PublicPropertiesToArray
+
+Return the list of the public properties defined in a class
+(as an array of `\Morph\Reflection\Property`)
+
+```php
+class User
+{
+    public string $name;
+    protected int $id;
+    private array $cache;
+
+    public function __construct(string $name, int $id)
+    {
+        $this->name = $name;
+        $this->id = $id;
+        $this->cache = ['foo' => 'bar'];
+    }
+}
+
+$getPublicValues = new \Morph\PublicPropertiesToArray();
+
+$getPublicValues(new User('Juanita Cowart'));
+```
+```php
+[
+    'name' => 'Juanita Cowart',
+]
+```
+
+### Sequence
+
+Group transformation and execute them in the given order.
+Each transformation receive as input the result of the previous
+transformation.
+
+```php
+$data = [
+    'singer' => [
+        'firstName' => 'Ann',
+        'lastName' => 'Bogan',
+    ],
+    'label' => [
+        'name' => 'Motown',
+    ],
+];
+
+$getSingerLastName = new \Morph\Sequence([
+    new \Morph\Pick('singer'),
+    new \Morph\Pick('lastName'),
+]);
+
+$getSingerLastName($data);
+```
+```php
+'Bogan'
+```
+
+### TransformKeys
+
+Transform each key of an array using the given transformation.
+
+```php
+$data = [
+    'first_name' => 'Ann',
+    'last_name' => 'Bogan',
+];
+
+$upperKeys = new \Morph\TransformKeys('mb_strtoupper');
+```
+```php
+[
+    'FIRST_NAME' => 'Ann',
+    'LAST_NAME' => 'Bogan',
+]
+```
+
+### TransformValues
+
+Transform each value of an array using the given transformation.
+
+```php
+$data = [
+    'first_name' => 'Ann',
+    'last_name' => 'Bogan',
+];
+
+$upperKeys = new \Morph\TransformValues('mb_strtoupper');
+```
+```php
+[
+    'first_name' => 'ANN',
+    'last_name' => 'BOGAN',
+]
+```
+
+Transform each value of an array using the given transformation.
+
+### MorphBase
+
+Abstract `MorphBase` that can be extended to craft new transformations
+and inherit from handy methods:
+
+```php
+class UserTransformer extends \Morph\MorphBase
+{
+    private $nameTransformer;
+    private $defaultTransformer;
+
+    public function __construct($nameTransformer, $defaultTransformer)
+    {
+        $this->nameTransformer = $nameTransformer;
+        $this->defaultTransformer = $defaultTransformer;
+    }
+
+    public function __invoke(User $user): array
+    {
+        $data = $this->mapWithTransformer($this->defaultTransformer, [
+            'group' => $user->getGroup(),
+            'label' => $user->getLabel(),
+        ];
+
+        return [
+            'name' => $this->useTransformerWith($this->nameTransformer, $user->getName()),
+        ];
+    }
+}
+```
+`useTransformerWith()` can use as a transformer either any callable or
+a class instance that have a `transform()` method.
+
+`mapWithTransformer()` is the same but take an array and apply the
+transformer to each value of this array.
+
 ## Reflection
 
 ```php
