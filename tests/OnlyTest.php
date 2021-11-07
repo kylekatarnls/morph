@@ -22,7 +22,7 @@ test('Only', function () {
 
     $select = new Sequence([
         new Only(['firstName', 'lastName']),
-        new TransformValues(new Only(['description'])),
+        new TransformValues(new Only('description')),
     ]);
 
     expect($select($description))->toBe([
@@ -33,4 +33,19 @@ test('Only', function () {
             'description' => 'Last (family) name(s).',
         ],
     ]);
+
+    $select = new Sequence([
+        new Only('firstName'),
+        new TransformValues(new Only(['description'])),
+    ]);
+
+    expect($select($description))->toBe([
+        'firstName' => [
+            'description' => "First name(s) / Surname(s).\n\nIncludes middle name(s).",
+        ],
+    ]);
+
+    $select = new Only([]);
+
+    expect($select($description))->toBe([]);
 });

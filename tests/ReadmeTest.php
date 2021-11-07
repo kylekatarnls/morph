@@ -162,5 +162,5 @@ test('Everything is documented', function () {
         static fn (string $class) => class_exists('Morph\\' . $class),
     );
 
-    expect($matches['title'])->toBe($classes);
+    expect(array_diff($classes, $matches['title']))->toBe([]);
 })->group('readme');
