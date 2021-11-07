@@ -243,6 +243,113 @@ an auto-documented API system such as
 
 See more in the [Reflection chapter](#Reflection).
 
+## Built-in transformers
+
+### FilterKeys
+
+Filter an array to keep only keys for which the given callable
+returns `true` (or is truthy if no callable was passed in the constructor).
+
+```php
+$removePrivateKeys = new \Morph\FilterKeys(
+    static fn (string $key) => $key[0] !== '_',
+);
+$removePrivateKeys([
+    'foo' => 'A',
+    '_bar' => 'B',
+    'biz' => 'C',
+]);
+```
+
+```php
+[
+    'foo' => 'A',
+    'biz' => 'C',
+]
+```
+
+### FilterValues
+
+Filter an array to keep only values for which the given callable
+returns `true` (or is truthy if no callable was passed in the constructor).
+
+```php
+$removeLowValues = new \Morph\FilterValues(
+    static fn ($value) => $value > 10,
+);
+$removeLowValues([
+    'foo' => 12,
+    '_bar' => 14,
+    'biz' => 7,
+]);
+```
+
+```php
+[
+    'foo' => 12,
+    '_bar' => 14,
+]
+```
+
+### Getters
+
+Return the list of the methods (as an array of `\Morph\Reflection\Method`)
+that start with `"get"` or one of the given prefixes if you passed a list
+or prefixes in the constructor.
+
+```php
+class User
+{
+    public function getName(): string { return 'Bob'; }
+    public function isAdmin(): bool { return false; }
+    public function update(): void {}
+}
+
+$getGetters = new \Morph\Getters(['get', 'is']);
+$getGetters(User::class);
+```
+```php
+[
+    'Name' => new \Morph\Reflection\Method(new ReflectionMethod(
+        User::class, 'getName',
+    )),
+    'Admin' => new \Morph\Reflection\Method(new ReflectionMethod(
+        User::class, 'isAdmin',
+    )),
+]
+```
+
+Note that `Getters` does not call the methods, it just return
+the definitions of those methods.
+
+See more in the [Reflection chapter](#Reflection).
+
+### GettersToArray
+
+Return values for each public method of an object
+that start with `"get"` or one of the given prefixes if you passed a list
+or prefixes in the constructor.
+
+```php
+class User
+{
+    public function getName(): string { return 'Bob'; }
+    public function isAdmin(): bool { return false; }
+    public function update(): void {}
+}
+
+$bob = new User();
+
+$getGetters = new \Morph\GettersToArray(['get', 'is']);
+$getGetters($bob);
+```
+```php
+[
+    'Name' => 'Bob',
+    'Admin' => false,
+]
+```
+
 ## Reflection
 
 ```php

@@ -117,7 +117,9 @@ test('Readme', function () {
             'Given value type: integer.',
         ]),
     );
+})->group('readme');
 
+test('JsonSerializable', function () {
     require_once __DIR__ . '/Fixtures/ModelTransformer.php';
 
     $user = new class() implements JsonSerializable
@@ -144,4 +146,21 @@ test('Readme', function () {
             "Email": "katherine.anderson@marvelettes.org"
         }
         OES));
+})->group('readme');
+
+test('Everything is documented', function () {
+    preg_match_all(
+        '/^###\s+(?<title>\S.*\S)\s*$/m',
+        file_get_contents(__DIR__ . '/../README.md'),
+        $matches,
+    );
+    $classes = array_filter(
+        array_map(
+            static fn (string $file) => pathinfo($file, PATHINFO_FILENAME),
+            glob(__DIR__ . '/../src/Morph/*.php'),
+        ),
+        static fn (string $class) => class_exists('Morph\\' . $class),
+    );
+
+    expect($matches['title'])->toBe($classes);
 })->group('readme');
