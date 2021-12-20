@@ -75,7 +75,7 @@ class HashUserId implements Morph\Morph
 
 $transformer = new Morph\Merge([
     static fn ($value) => ['username' => $value->name],
-    new class HashUserId(),
+    new HashUserId(),
 ]);
 
 $user = (object) ['id' => 42, 'name' => 'Georgeanna Tillman'];
@@ -96,7 +96,7 @@ class UserTransformer extends Morph\Merge
     {
         return [
             static fn ($value) => ['username' => $value->name],
-            new class HashUserId(),
+            new HashUserId(),
         ];
     }
 }
@@ -152,7 +152,7 @@ class UserTransformer extends Morph\Merge
     {
         return [
             static fn ($value) => ['username' => $value->name],
-            new class HashUserId($this->idHashAlgo),
+            new HashUserId($this->idHashAlgo),
         ];
     }
 }
