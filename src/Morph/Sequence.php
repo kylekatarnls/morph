@@ -25,6 +25,17 @@ class Sequence extends MorphBase
         }, $args)[0];
     }
 
+    public function concat(array|self $transformers): static
+    {
+        return new static([
+            ...$this->transformers,
+            ...(is_array($transformers)
+                ? $transformers
+                : $transformers->getTransformers()
+            ),
+        ]);
+    }
+
     protected function getTransformers(): array
     {
         return $this->transformers;

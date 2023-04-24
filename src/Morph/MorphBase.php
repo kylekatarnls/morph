@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Morph;
 
 use InvalidArgumentException;
+use Morph\Iteration\FilterIterable;
+use Morph\Iteration\MapIterable;
 
 abstract class MorphBase implements Morph
 {
@@ -14,6 +16,49 @@ abstract class MorphBase implements Morph
     public function transform(...$args)
     {
         return $this->__invoke(...$args);
+    }
+
+    public function concat(array|Sequence $transformers): Sequence
+    {
+        return new Sequence([
+            $this,
+            ...(is_array($transformers)
+                ? $transformers
+                : $transformers->getTransformers()
+            ),
+        ]);
+    }
+
+    public function then(callable|Morph $transformer): Sequence
+    {
+        return $this->concat([$transformer]);
+    }
+
+    public function pick(string|int $key): Sequence
+    {
+        return $this->then(new Pick($key));
+    }
+
+    public function only($keys): Sequence
+    {
+        return $this->then(new Only($keys));
+    }
+
+    public function filter(
+        ?callable $transformer = null,
+        ?string $key = null,
+        ?string $property = null,
+        bool $dropIndex = false
+    ): Sequence {
+        return $this->then(new FilterIterable($transformer, $key, $property, $dropIndex));
+    }
+
+    public function map(
+        ?callable $transformer = null,
+        ?string $key = null,
+        ?string $property = null
+    ): Sequence {
+        return $this->then(new MapIterable($transformer, $key, $property));
     }
 
     protected function useTransformerWith($transformer, ...$args)
