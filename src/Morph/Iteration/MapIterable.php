@@ -41,8 +41,8 @@ class MapIterable extends MorphBase implements IterableMorph
 
     public function __invoke(iterable $value, ...$args): iterable
     {
-       foreach ($value as $index => $item) {
-           yield $index => ($this->transformer)($item, $index, ...$args);
-       }
+        foreach ($value as $index => $item) {
+            yield $index => ($this->transformer)($item, $index, ...$args);
+        }
     }
 }

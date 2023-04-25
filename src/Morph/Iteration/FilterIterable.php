@@ -9,54 +9,54 @@ use Morph\MorphBase;
 
 class FilterIterable extends MorphBase implements IterableMorph
 {
-    private $transformer;
+    private $callback;
 
     private bool $dropIndex;
 
     public function __construct(
-        ?callable $transformer = null,
+        ?callable $callback = null,
         ?string $key = null,
         ?string $property = null,
         bool $dropIndex = false
     ) {
         if ($key !== null) {
-            if ($transformer !== null) {
+            if ($callback !== null) {
                 throw new InvalidArgumentException(
                     'You can set only one of transformer, key or property'
                 );
             }
 
-            $transformer = static fn ($item) => $item[$key] ?? null;
+            $callback = static fn ($item) => $item[$key] ?? null;
         }
 
         if ($property !== null) {
-            if ($transformer !== null) {
+            if ($callback !== null) {
                 throw new InvalidArgumentException(
                     'You can set only one of transformer, key or property'
                 );
             }
 
-            $transformer = static fn ($item) => $item->$key ?? null;
+            $callback = static fn ($item) => $item->$key ?? null;
         }
 
-        $this->transformer = $transformer;
+        $this->callback = $callback;
         $this->dropIndex = $dropIndex;
     }
 
     public function __invoke(iterable $value, ...$args): iterable
     {
-       foreach ($value as $index => $item) {
-           if (!($this->transformer)($item, $index, ...$args)) {
-               continue;
-           }
+        foreach ($value as $index => $item) {
+            if (!($this->callback)($item, $index, ...$args)) {
+                continue;
+            }
 
-           if ($this->dropIndex) {
-               yield $item;
+            if ($this->dropIndex) {
+                yield $item;
 
-               continue;
-           }
+                continue;
+            }
 
-           yield $index => $item;
-       }
+            yield $index => $item;
+        }
     }
 }
