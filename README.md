@@ -938,7 +938,7 @@ function gen() {
     yield 'B' => 2;
 }
 
-foreach (new \Morph\Iteration\ValuesIterable())(gen()) as $key => $value) {
+foreach ((new \Morph\Iteration\ValuesIterable())(gen()) as $key => $value) {
     echo "$key: $value\n";
 }
 ```
@@ -951,6 +951,30 @@ As keys are dropped, you get the output:
 
 Use `->values()` on `Transformation` builder object to add it as a step.
 
+## KeysIterable
+
+Get values (use `array_keys` on `array` value) otherwise iterate
+dropping input values and yielding indexes as output values.
+
+```php
+function gen() {
+    yield 'A' => 3;
+    yield 'B' => 2;
+}
+
+foreach ((new \Morph\Iteration\ValuesIterable())(gen()) as $key => $value) {
+    echo "$key: $value\n";
+}
+```
+
+Output:
+```
+0: A
+1: B
+```
+
+Use `->keys()` on `Transformation` builder object to add it as a step.
+
 ## FilterIterable
 
 Filter iterable value keeping only items matching a given filter.
@@ -961,7 +985,7 @@ function gen() {
     yield 'B' => 2;
 }
 
-foreach (new \Morph\Iteration\FilterIterable(
+foreach ((new \Morph\Iteration\FilterIterable(
     static fn (int $number) => $number % 2 === 0,
 ))(gen()) as $key => $value) {
     echo "$key: $value\n";
@@ -989,3 +1013,96 @@ loop) by setting `dropIndex: true` argument.
 keep truthy elements.
 
 Use `->filter(...)` on `Transformation` builder object to add it as a step.
+
+## FlipIterable
+
+Flip keys and values (use `array_flip` on `array` value) otherwise iterate.
+
+```php
+function gen() {
+    yield 'A' => 3;
+    yield 'B' => 2;
+    yield 'A' => 5;
+    yield 'B' => 3;
+}
+
+foreach ((new \Morph\Iteration\FlipIterable())(gen()) as $key => $value) {
+    echo "$key: $value\n";
+}
+```
+
+Output:
+```
+3: A
+2: B
+5: A
+3: B
+```
+
+Use `->flip()` on `Transformation` builder object to add it as a step.
+
+## MapIterable
+
+Transform each value of an iterable with a transformation callback.
+
+The callback receive first the value, second the index, then extra
+arguments as passed when invoking the transformer.
+
+```php
+function gen() {
+    yield 'A' => 3;
+    yield 'B' => 2;
+}
+
+foreach ((new \Morph\Iteration\MapIterable(
+    static fn (int $number) => $number * 2,
+))(gen()) as $key => $value) {
+    echo "$key: $value\n";
+}
+
+foreach ((new \Morph\Iteration\MapIterable(
+    static fn (int $number, string $letter, string $x) => "$letter/$number/$x",
+))(gen(), 'x') as $key => $value) {
+    echo "$value\n";
+}
+```
+
+Output:
+```
+A: 6
+B: 4
+A/6/x
+B/4/x
+```
+
+Alternatively, `MapIterable` can also take a `property` or
+`key` named argument:
+
+`MapIterable(property: 'active')` is equivalent to:
+`MapIterable(static fn ($item) => $item->active ?? false)`
+
+`MapIterable(key: 'active')` is equivalent to:
+`MapIterable(static fn ($item) => $item['active'] ?? false)`
+
+Use `->map(...)` on `Transformation` builder object to add it as
+a step.
+
+## ReduceIterable
+
+Applies iteratively the callback function to the elements of the
+array/iterable, to reduce it to a single value
+(use `array_reduce` on `array` value) otherwise iterate.
+
+```php
+function gen() {
+    yield 3;
+    yield 2;
+    yield 6;
+}
+
+echo (new \Morph\Iteration\ReduceIterable(
+    static fn ($carry, $item) => $carry * $item,
+))(gen(), 1); // 36
+```
+
+Use `->reduce()` on `Transformation` builder object to add it as a step.

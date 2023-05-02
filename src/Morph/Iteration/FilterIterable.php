@@ -22,7 +22,7 @@ class FilterIterable extends MorphBase implements IterableMorph
         if ($key !== null) {
             if ($callback !== null) {
                 throw new InvalidArgumentException(
-                    'You can set only one of transformer, key or property'
+                    'You can set only one of transformer, key or property',
                 );
             }
 
@@ -32,7 +32,7 @@ class FilterIterable extends MorphBase implements IterableMorph
         if ($property !== null) {
             if ($callback !== null) {
                 throw new InvalidArgumentException(
-                    'You can set only one of transformer, key or property'
+                    'You can set only one of transformer, key or property',
                 );
             }
 

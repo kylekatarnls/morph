@@ -19,7 +19,7 @@ class MapIterable extends MorphBase implements IterableMorph
         if ($key !== null) {
             if ($transformer !== null) {
                 throw new InvalidArgumentException(
-                    'You can set only one of transformer, key or property'
+                    'You can set only one of transformer, key or property',
                 );
             }
 
@@ -29,14 +29,17 @@ class MapIterable extends MorphBase implements IterableMorph
         if ($property !== null) {
             if ($transformer !== null) {
                 throw new InvalidArgumentException(
-                    'You can set only one of transformer, key or property'
+                    'You can set only one of transformer, key or property',
                 );
             }
 
             $transformer = static fn ($item) => $item->$key ?? null;
         }
 
-        $this->transformer = $transformer;
+        $this->transformer = $transformer
+            ?? throw new InvalidArgumentException(
+                'Transformer, key or property is required',
+            );
     }
 
     public function __invoke(iterable $value, ...$args): iterable
