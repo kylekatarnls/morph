@@ -831,3 +831,161 @@ Output:
     }
 }
 ```
+
+### Iteration
+
+When a transformation is iterable (`Morph\Iteration\*Iterable` classes),
+or a Sequence of iterable transformations and get passed an iterable value
+(`Traversable`, `Generator`, etc.), it will proceed lazily, so it won't
+start the iteration but return a new iterable and transformation will be
+proceeded as you iterate on the returned iterable value.
+
+Every iterable can also take array values and then use `array_*` functions
+for better performance.
+
+## Transformation
+
+`Morph\Transformation` is a build object, it allows to prepare a transformation
+with multiple steps using chaining. It's handy when wanting to optimize
+memory consumption long iteration (reading line by line a big log file for
+instance).
+
+As it's a lazy builder, it won't start any actual transformation until you
+call `->get()` on it.
+
+```php
+function gen() {
+    yield 1;
+    yield 2;
+    yield 3;
+    yield 4;
+    yield 5;
+    yield 6;
+}
+
+var_dump(
+    \Morph\Transformation::take(gen())
+        ->filter(static fn (int $number) => $number !== 4)
+        ->map(static fn (int $number) => [
+            'number' => $number,
+            'odd' => $number % 2 === 0,
+        ])
+        ->filter(key: 'odd')
+        ->values()
+        ->array()
+        ->get()
+);
+```
+
+Output:
+```
+array(2) {
+  [0] =>
+  array(2) {
+    'number' =>
+    int(2)
+    'odd' =>
+    bool(true)
+  }
+  [1] =>
+  array(2) {
+    'number' =>
+    int(6)
+    'odd' =>
+    bool(true)
+  }
+}
+```
+
+## CountIterable
+
+Count iterations (use `count` on `Countable` values) otherwise iterate.
+
+```php
+function gen() {
+    yield 1;
+    yield 2;
+}
+
+echo (new \Morph\Iteration\CountIterable())(gen()); // 2
+```
+
+Use `->count()` on `Transformation` builder object to add it as a step.
+
+## SumIterable
+
+Count iterations (use `array_sum` on `array` value) otherwise iterate.
+
+```php
+function gen() {
+    yield 3;
+    yield 2;
+}
+
+echo (new \Morph\Iteration\SumIterable())(gen()); // 5
+```
+
+Use `->sum()` on `Transformation` builder object to add it as a step.
+
+## ValuesIterable
+
+Get values (use `array_values` on `array` value) otherwise iterate
+dropping indexes.
+
+```php
+function gen() {
+    yield 'A' => 3;
+    yield 'B' => 2;
+}
+
+foreach (new \Morph\Iteration\ValuesIterable())(gen()) as $key => $value) {
+    echo "$key: $value\n";
+}
+```
+
+As keys are dropped, you get the output:
+```
+0: 3
+1: 2
+```
+
+Use `->values()` on `Transformation` builder object to add it as a step.
+
+## FilterIterable
+
+Filter iterable value keeping only items matching a given filter.
+
+```php
+function gen() {
+    yield 'A' => 3;
+    yield 'B' => 2;
+}
+
+foreach (new \Morph\Iteration\FilterIterable(
+    static fn (int $number) => $number % 2 === 0,
+))(gen()) as $key => $value) {
+    echo "$key: $value\n";
+}
+```
+
+Only values matching the callback remain:
+```
+B: 2
+```
+
+Alternatively, `FilterIterable` can also take a `property` or
+`key` named argument:
+
+`FilterIterable(property: 'active')` is equivalent to:
+`FilterIterable(static fn ($item) => $item->active ?? false)`
+
+`FilterIterable(key: 'active')` is equivalent to:
+`FilterIterable(static fn ($item) => $item['active'] ?? false)`
+
+Additionally, you can drop indexes when filtering (in the same
+loop) by setting `dropIndex: true` argument.
+
+`FilterIterable()` (with no callback, property nor key) will
+keep truthy elements.
+
+Use `->filter(...)` on `Transformation` builder object to add it as a step.

@@ -39,7 +39,7 @@ class FilterIterable extends MorphBase implements IterableMorph
             $callback = static fn ($item) => $item->$key ?? null;
         }
 
-        $this->callback = $callback;
+        $this->callback = $callback ?? (static fn ($item) => $item);
         $this->dropIndex = $dropIndex;
     }
 

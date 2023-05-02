@@ -150,17 +150,26 @@ test('JsonSerializable', function () {
 
 test('Everything is documented', function () {
     preg_match_all(
-        '/^###\s+(?<title>\S.*\S)\s*$/m',
+        '/^###?\s+(?<title>\S.*\S)\s*$/m',
         file_get_contents(__DIR__ . '/../README.md'),
         $matches,
     );
-    $classes = array_filter(
-        array_map(
-            static fn (string $file) => pathinfo($file, PATHINFO_FILENAME),
-            glob(__DIR__ . '/../src/Morph/*.php'),
+    $classes = [
+        ...array_filter(
+            array_map(
+                static fn (string $file) => pathinfo($file, PATHINFO_FILENAME),
+                glob(__DIR__ . '/../src/Morph/*.php'),
+            ),
+            static fn (string $class) => class_exists('Morph\\' . $class),
         ),
-        static fn (string $class) => class_exists('Morph\\' . $class),
-    );
+        ...array_filter(
+            array_map(
+                static fn (string $file) => pathinfo($file, PATHINFO_FILENAME),
+                glob(__DIR__ . '/../src/Morph/Iteration/*.php'),
+            ),
+            static fn (string $class) => class_exists('Morph\\Iteration\\' . $class),
+        ),
+    ];
 
     expect(array_diff($classes, $matches['title']))->toBe([]);
 })->group('readme');
