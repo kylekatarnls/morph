@@ -152,6 +152,15 @@ test('Transformation', function () {
     );
 
     expect(
+        Transformation::take($gen())->reduce(
+            static fn (int $previous, int $next) => $next * $previous,
+            1,
+        )->get(),
+    )->toBe(
+        720,
+    );
+
+    expect(
         Transformation::take([[0, 1], [2, 3], [4, 5]])->pick(1)->get(),
     )->toBe(
         [2, 3],
