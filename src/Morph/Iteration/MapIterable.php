@@ -33,7 +33,7 @@ class MapIterable extends MorphBase implements IterableMorph
                 );
             }
 
-            $transformer = static fn ($item) => $item->$key ?? null;
+            $transformer = static fn ($item) => $item->$property ?? null;
         }
 
         $this->transformer = $transformer

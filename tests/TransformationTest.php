@@ -93,6 +93,12 @@ test('Transformation', function () {
     );
 
     expect(
+        Transformation::take(['a' => 1, 'b' => 2, 'x' => 3])->values()->get(),
+    )->toBe(
+        [1, 2, 3],
+    );
+
+    expect(
         Transformation::take([1, 2, 'x' => 3])->flip()->get(),
     )->toBe(
         [1 => 0, 2 => 1, 3 => 'x'],
@@ -116,6 +122,12 @@ test('Transformation', function () {
         Transformation::take([2, 4, 6])->count()->get(),
     )->toBe(
         3,
+    );
+
+    expect(
+        Transformation::take($gen())->count()->get(),
+    )->toBe(
+        6,
     );
 
     expect(
@@ -208,5 +220,124 @@ test('Transformation', function () {
             ['type' => 'b', 'name' => 'B'],
             ['type' => 'c', 'name' => 'C'],
         ],
+    );
+
+    expect(
+        Transformation::take([
+            ['type' => 'a', 'active' => true, 'name' => 'A'],
+            ['type' => 'b', 'active' => false, 'name' => 'B'],
+            ['type' => 'c', 'active' => true, 'name' => 'C'],
+        ])->filter(key: 'active')->array()->get(),
+    )->toBe(
+        [
+            0 => ['type' => 'a', 'active' => true, 'name' => 'A'],
+            2 => ['type' => 'c', 'active' => true, 'name' => 'C'],
+        ],
+    );
+
+    expect(
+        Transformation::take([
+            ['type' => 'a', 'active' => true, 'name' => 'A'],
+            ['type' => 'b', 'active' => false, 'name' => 'B'],
+            ['type' => 'c', 'active' => true, 'name' => 'C'],
+        ])->filter(key: 'active', dropIndex: true)->array()->get(),
+    )->toBe(
+        [
+            ['type' => 'a', 'active' => true, 'name' => 'A'],
+            ['type' => 'c', 'active' => true, 'name' => 'C'],
+        ],
+    );
+
+    expect(
+        Transformation::take([
+            (object) ['type' => 'a', 'active' => true, 'name' => 'A'],
+            (object) ['type' => 'b', 'active' => false, 'name' => 'B'],
+            (object) ['type' => 'c', 'active' => true, 'name' => 'C'],
+        ])->filter(property: 'active', dropIndex: true)->array()->get(),
+    )->toEqual(
+        [
+            (object) ['type' => 'a', 'active' => true, 'name' => 'A'],
+            (object) ['type' => 'c', 'active' => true, 'name' => 'C'],
+        ],
+    );
+
+    expect(
+        Transformation::take([
+            (object) ['type' => 'a', 'active' => true, 'name' => 'A'],
+            (object) ['type' => 'b', 'active' => false, 'name' => 'B'],
+            (object) ['type' => 'c', 'active' => true, 'name' => 'C'],
+        ])->map(property: 'name')->array()->get(),
+    )->toEqual(
+        ['A', 'B', 'C'],
+    );
+
+    expect(
+        Transformation::take([
+            ['type' => 'a', 'active' => true, 'name' => 'A'],
+            ['type' => 'b', 'active' => false, 'name' => 'B'],
+            ['type' => 'c', 'active' => true, 'name' => 'C'],
+        ])->map(key: 'name')->array()->get(),
+    )->toEqual(
+        ['A', 'B', 'C'],
+    );
+
+    $transformation = new Transformation(
+        42,
+        [6, 3],
+        static fn (int $value, int $plus, int $minus) => $value + $plus - $minus,
+    );
+
+    expect($transformation->get())->toBe(45);
+
+    $other = $transformation->concat([
+        static fn (int $value, int $plus, int $minus) => $value + $plus,
+        static fn (int $value, int $plus, int $minus) => $value - $minus,
+    ]);
+
+    expect($transformation->get())->toBe(45);
+    expect($other->get())->toBe(48);
+
+    expect(static function () {
+        Transformation::take([
+            (object) ['type' => 'a', 'active' => true, 'name' => 'A'],
+            ['type' => 'b', 'active' => false, 'name' => 'B'],
+            ['type' => 'c', 'active' => true, 'name' => 'C'],
+        ])->filter(key: 'active', property: 'active');
+    })->toThrow(
+        InvalidArgumentException::class,
+        'You can set only one of transformer, key or property',
+    );
+
+    expect(static function () {
+        Transformation::take([
+            (object) ['type' => 'a', 'active' => true, 'name' => 'A'],
+            ['type' => 'b', 'active' => false, 'name' => 'B'],
+            ['type' => 'c', 'active' => true, 'name' => 'C'],
+        ])->filter('is_array', 'active');
+    })->toThrow(
+        InvalidArgumentException::class,
+        'You can set only one of transformer, key or property',
+    );
+
+    expect(static function () {
+        Transformation::take([
+            (object) ['type' => 'a', 'active' => true, 'name' => 'A'],
+            ['type' => 'b', 'active' => false, 'name' => 'B'],
+            ['type' => 'c', 'active' => true, 'name' => 'C'],
+        ])->map(key: 'active', property: 'active');
+    })->toThrow(
+        InvalidArgumentException::class,
+        'You can set only one of transformer, key or property',
+    );
+
+    expect(static function () {
+        Transformation::take([
+            (object) ['type' => 'a', 'active' => true, 'name' => 'A'],
+            ['type' => 'b', 'active' => false, 'name' => 'B'],
+            ['type' => 'c', 'active' => true, 'name' => 'C'],
+        ])->map('is_array', 'active');
+    })->toThrow(
+        InvalidArgumentException::class,
+        'You can set only one of transformer, key or property',
     );
 });
