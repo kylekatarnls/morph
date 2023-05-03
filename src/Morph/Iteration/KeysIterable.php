@@ -4,16 +4,20 @@ declare(strict_types=1);
 
 namespace Morph\Iteration;
 
+use Generator;
 use Morph\MorphBase;
 
 class KeysIterable extends MorphBase implements IterableMorph
 {
-    public function __invoke(iterable $value, ...$args): iterable
+    public function __invoke(iterable $value, ...$args): array|Generator
     {
-        if (is_array($value)) {
-            return array_keys($value);
-        }
+        return is_array($value)
+            ? array_keys($value)
+            : $this->getGeneratorKeys($value);
+    }
 
+    private function getGeneratorKeys(iterable $value): Generator
+    {
         foreach ($value as $key => $ignored) {
             yield $key;
         }

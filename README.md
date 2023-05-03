@@ -1105,4 +1105,6 @@ echo (new \Morph\Iteration\ReduceIterable(
 ))(gen(), 1); // 36
 ```
 
+Initial value might be passed either on construct or on invocation.
+
 Use `->reduce()` on `Transformation` builder object to add it as a step.

@@ -122,9 +122,9 @@ final class Transformation
         return new self($this->value, $this->args, $this->getSequence()->sum());
     }
 
-    public function reduce(callable $callback): self
+    public function reduce(callable $callback, mixed $initial = null): self
     {
-        return new self($this->value, $this->args, $this->getSequence()->reduce($callback));
+        return new self($this->value, $this->args, $this->getSequence()->reduce($callback, $initial));
     }
 
     public function flip(): self

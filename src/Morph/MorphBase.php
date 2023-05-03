@@ -117,9 +117,9 @@ abstract class MorphBase implements Morph
         return $this->then(new SumIterable());
     }
 
-    public function reduce(callable $callback): Sequence
+    public function reduce(callable $callback, mixed $initial = null): Sequence
     {
-        return $this->then(new ReduceIterable($callback));
+        return $this->then(new ReduceIterable($callback, $initial));
     }
 
     public function flip(): Sequence
