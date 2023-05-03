@@ -1,5 +1,7 @@
 <?php
 
+use Morph\Only;
+use Morph\Pick;
 use Morph\Transformation;
 
 test('Transformation', function () {
@@ -61,6 +63,11 @@ test('Transformation', function () {
         Transformation::take([1, 2, 3])->first()->get(),
     )->toBe(
         1,
+    )
+    ->and(
+        Transformation::take([])->first()->get(),
+    )->toBe(
+        null,
     );
 
     expect(
@@ -129,5 +136,62 @@ test('Transformation', function () {
         )->get(),
     )->toBe(
         '_.a.b.c',
+    );
+
+    expect(
+        Transformation::take([[0, 1], [2, 3], [4, 5]])->pick(1)->get(),
+    )->toBe(
+        [2, 3],
+    );
+
+    expect(
+        Transformation::take([
+            'type' => 'a',
+            'active' => true,
+            'name' => 'A',
+        ])->pick('active')->get(),
+    )->toBe(
+        true,
+    );
+    expect(
+        Transformation::take([
+            'type' => 'a',
+            'active' => true,
+            'name' => 'A',
+        ])->only(['name', 'type'])->get(),
+    )->toBe(
+        [
+            'type' => 'a',
+            'name' => 'A',
+        ],
+    );
+
+    expect(
+        Transformation::take([[0, 1], [2, 3], [4, 5]])->map(new Pick(1))->array()->get(),
+    )->toBe(
+        [1, 3, 5],
+    );
+
+    expect(
+        Transformation::take([
+            ['active' => true],
+            ['active' => false],
+            ['active' => true],
+        ])->map(new Pick('active'))->array()->get(),
+    )->toBe(
+        [true, false, true],
+    );
+    expect(
+        Transformation::take([
+            ['type' => 'a', 'active' => true, 'name' => 'A'],
+            ['type' => 'b', 'active' => false, 'name' => 'B'],
+            ['type' => 'c', 'active' => true, 'name' => 'C'],
+        ])->map(new Only(['name', 'type']))->array()->get(),
+    )->toBe(
+        [
+            ['type' => 'a', 'name' => 'A'],
+            ['type' => 'b', 'name' => 'B'],
+            ['type' => 'c', 'name' => 'C'],
+        ],
     );
 });
