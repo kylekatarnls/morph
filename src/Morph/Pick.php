@@ -6,14 +6,8 @@ namespace Morph;
 
 class Pick extends MorphBase
 {
-    /**
-     * @var string|int
-     */
-    private $key;
-
-    public function __construct($key)
+    public function __construct(private readonly string|int $key)
     {
-        $this->key = $key;
     }
 
     public function __invoke($value)
