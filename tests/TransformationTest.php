@@ -1,5 +1,6 @@
 <?php
 
+use Morph\Iteration\MapIterable;
 use Morph\Only;
 use Morph\Pick;
 use Morph\Transformation;
@@ -181,6 +182,20 @@ test('Transformation', function () {
     )->toBe(
         [true, false, true],
     );
+
+    expect(
+        (new MapIterable((new Pick('active'))->concat([
+            'intval',
+            static fn (int $number) => $number * 2,
+        ])))->then('iterator_to_array')([
+            ['active' => true],
+            ['active' => false],
+            ['active' => true],
+        ]),
+    )->toBe(
+        [2, 0, 2],
+    );
+
     expect(
         Transformation::take([
             ['type' => 'a', 'active' => true, 'name' => 'A'],
