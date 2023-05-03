@@ -1,7 +1,6 @@
 <?php
 
-use Morph\Tests\Fixtures\User;
-use Morph\Tests\Fixtures\UserDefiner;
+use Morph\Transformation;
 
 test('Transformation', function () {
     $gen = static function (): iterable {
@@ -11,7 +10,7 @@ test('Transformation', function () {
     };
 
     expect(
-        \Morph\Transformation::take($gen())
+        Transformation::take($gen())
             ->filter(static fn (int $number) => $number !== 4)
             ->map(static fn (int $number) => [
                 'number' => $number,
@@ -20,7 +19,7 @@ test('Transformation', function () {
             ->filter(key: 'odd')
             ->values()
             ->array()
-            ->get()
+            ->get(),
     )->toBe(
         [
             [
@@ -32,5 +31,35 @@ test('Transformation', function () {
                 'odd' => true,
             ],
         ],
+    );
+
+    expect(
+        Transformation::take(42)->get(),
+    )->toBe(
+        42,
+    );
+
+    expect(
+        Transformation::take('abc')->then('strtoupper')->get(),
+    )->toBe(
+        'ABC',
+    );
+
+    expect(
+        Transformation::take([1, 2, 3])->reverse()->get(),
+    )->toBe(
+        [3, 2, 1],
+    );
+
+    expect(
+        Transformation::take([1, 2, 3])->first()->get(),
+    )->toBe(
+        1,
+    );
+
+    expect(
+        Transformation::take([1, 2, 3])->last()->get(),
+    )->toBe(
+        3,
     );
 });
